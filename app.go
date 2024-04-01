@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"net/http"
 	"time"
-	"user_service/db/core"
-	"user_service/db/stores"
-	"user_service/handlers/users"
 
+	"github.com/fridrock/auth_service/db/core"
+	"github.com/fridrock/auth_service/db/stores"
+	"github.com/fridrock/auth_service/handlers/users"
 	"github.com/gorilla/mux"
 )
 

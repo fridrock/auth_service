@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"user_service/db/entities"
-	"user_service/db/stores"
+
+	"github.com/fridrock/auth_service/db/entities"
+	"github.com/fridrock/auth_service/db/stores"
 )
 
 type UserService interface {
@@ -28,11 +29,11 @@ func (us *UserServiceImpl) CreateUserHandler(w http.ResponseWriter, r *http.Requ
 	var usr entities.User
 	err := json.NewDecoder(r.Body).Decode(&usr)
 	if err != nil {
-		slog.Error(fmt.Sprintf("handle create user: %v", err))
+		slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
 	}
 	id, err := us.store.CreateUser(usr)
 	if err != nil {
-		slog.Error(fmt.Sprintf("handle create user: %v", err))
+		slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
 	}
 	w.Write([]byte(fmt.Sprintf("id is : %v", id)))
 }

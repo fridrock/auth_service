@@ -16,12 +16,12 @@ func CreateConnection() *sql.DB {
 	if err != nil {
 		slog.Error("Error opening database connection")
 	}
+	slog.Info("Created postgresql connection")
 	return db
 }
 func createConnectionString() string {
 	dbName, dbUser, dbPassword, dbHost, dbPort := readEnvVariables()
 	result := fmt.Sprintf("postgresql://%v:%v@%v:%v/%v?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
-	slog.Info(fmt.Sprintf("Created postgresql path: %v", result))
 	return result
 }
 func readEnvVariables() (dbName, dbUser, dbPassword, dbHost, dbPort string) {
