@@ -29,13 +29,21 @@ func (us *UserServiceImpl) CreateUserHandler(w http.ResponseWriter, r *http.Requ
 	var usr entities.User
 	err := json.NewDecoder(r.Body).Decode(&usr)
 	if err != nil {
-		slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
+		createUserErrorHandler(w, err)
+		return
 	}
 	id, err := us.store.CreateUser(usr)
 	if err != nil {
-		slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
+		createUserErrorHandler(w, err)
+		return
 	}
+	slog.Info(fmt.Sprintf("Created user with id: %v", id))
 	w.Write([]byte(fmt.Sprintf("id is : %v", id)))
+}
+func createUserErrorHandler(w http.ResponseWriter, err error) {
+	slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(fmt.Sprint(err)))
 }
 func (us *UserServiceImpl) AuthUserHandler(w http.ResponseWriter, r *http.Request) {
 

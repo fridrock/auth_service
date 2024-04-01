@@ -17,15 +17,26 @@ func CreateUserStore(db *sql.DB) *UserStore {
 		db: db,
 	}
 }
+
 func (us UserStore) CreateUser(u entities.User) (int64, error) {
 	var id int64
-	err := us.db.QueryRow("INSERT INTO users (username, hashed_password) VALUES($1, $2) RETURNING id", u.Username, u.Password).Scan(&id)
+	hash, err := hashPassword(u.Password)
+	if err != nil {
+		slog.Error(fmt.Sprintf("UserStore.createUser(): %v", err))
+		return 0, err
+	}
+	err = us.db.QueryRow(
+		"INSERT INTO users (username, email, hashed_password) VALUES($1, $2, $3) RETURNING id",
+		u.Username,
+		u.Email,
+		hash).Scan(&id)
 	if err != nil {
 		slog.Error(fmt.Sprintf("UserStore.createUser(): %v", err))
 		return 0, err
 	}
 	return id, nil
 }
+
 func (us UserStore) GetUsers() ([]entities.User, error) {
 	var users []entities.User
 	rows, err := us.db.Query("SELECT * FROM users")
