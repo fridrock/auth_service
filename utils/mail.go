@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log/slog"
 	"net/smtp"
 	"os"
@@ -14,6 +15,7 @@ func Send(body string) {
 		slog.Error("error reading environment variables")
 	}
 	pass, exists := os.LookupEnv("EMAIL_PASSWORD")
+	fmt.Println(pass)
 	if !exists {
 		slog.Error("Can't read EMAIL_PASSWORD")
 		return

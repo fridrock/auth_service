@@ -48,6 +48,9 @@ func createUserErrorHandler(w http.ResponseWriter, err error) {
 func (us *UserServiceImpl) AuthUserHandler(w http.ResponseWriter, r *http.Request) {
 
 }
+func (us *UserServiceImpl) CheckChatHandler(w http.ResponseWriter, r *http.Request) {
+
+}
 func (us *UserServiceImpl) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
 
 }
