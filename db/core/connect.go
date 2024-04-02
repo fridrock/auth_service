@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -25,9 +24,7 @@ func createConnectionString() string {
 	return result
 }
 func readEnvVariables() (dbName, dbUser, dbPassword, dbHost, dbPort string) {
-	if err := godotenv.Load(); err != nil {
-		slog.Error("error reading environment variables")
-	}
+
 	dbName, exists := os.LookupEnv("DATABASE_NAME")
 	handleExists(exists)
 	dbUser, exists = os.LookupEnv("DATABASE_USER")
