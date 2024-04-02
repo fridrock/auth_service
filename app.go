@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 	"net/http"
+	"net/mail"
 	"time"
 
 	"github.com/fridrock/auth_service/db/core"
 	"github.com/fridrock/auth_service/db/stores"
 	"github.com/fridrock/auth_service/handlers/users"
-	"github.com/fridrock/auth_service/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -29,7 +29,7 @@ type App struct {
 
 func startApp() {
 	a := App{}
-	utils.Send("Privet")
+	mail.Send("Hi")
 	a.setup()
 }
 
