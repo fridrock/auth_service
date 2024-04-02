@@ -26,21 +26,28 @@ func CreateUserService(store stores.UserStore) *UserServiceImpl {
 	}
 }
 func (us *UserServiceImpl) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	var usr entities.User
-	err := json.NewDecoder(r.Body).Decode(&usr)
+	user, err := parseUser(r)
 	if err != nil {
-		createUserErrorHandler(w, err)
+		writeError(w, err)
 		return
 	}
-	id, err := us.store.CreateUser(usr)
+	id, err := us.store.CreateUser(user)
 	if err != nil {
-		createUserErrorHandler(w, err)
+		writeError(w, err)
 		return
 	}
 	slog.Info(fmt.Sprintf("Created user with id: %v", id))
 	w.Write([]byte(fmt.Sprintf("id is : %v", id)))
 }
-func createUserErrorHandler(w http.ResponseWriter, err error) {
+func parseUser(r *http.Request) (entities.User, error) {
+	var usr entities.User
+	err := json.NewDecoder(r.Body).Decode(&usr)
+	if err != nil {
+		return usr, err
+	}
+	return usr, err
+}
+func writeError(w http.ResponseWriter, err error) {
 	slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write([]byte(fmt.Sprint(err)))

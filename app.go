@@ -1,15 +1,15 @@
 package main
 
 import (
-	"database/sql"
+	"log/slog"
 	"net/http"
-	"net/mail"
 	"time"
 
 	"github.com/fridrock/auth_service/db/core"
 	"github.com/fridrock/auth_service/db/stores"
 	"github.com/fridrock/auth_service/handlers/users"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 )
 
 //Service funcionality:
@@ -22,14 +22,13 @@ import (
 // Main facade
 type App struct {
 	server      *http.Server
-	db          *sql.DB
+	db          *sqlx.DB
 	userStore   stores.UserStore
 	userService users.UserService
 }
 
 func startApp() {
 	a := App{}
-	mail.Send("Hi")
 	a.setup()
 }
 
@@ -44,13 +43,16 @@ func (a App) setup() {
 		WriteTimeout: time.Second * 30,
 		Handler:      a.getRouter(),
 	}
+	slog.Info("Starting server on port 9000")
 	a.server.ListenAndServe()
 }
+
 func (a App) getRouter() http.Handler {
 	mainRouter := mux.NewRouter()
 	mainRouter.Handle("/users/", a.getUsersRouter(mainRouter))
 	return mainRouter
 }
+
 func (a App) getUsersRouter(r *mux.Router) *mux.Router {
 	usersRouter := r.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/signup", a.userService.CreateUserHandler).Methods("POST")

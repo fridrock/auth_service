@@ -2,8 +2,8 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users (
  id SERIAL PRIMARY KEY,
- username VARCHAR(255) NOT NULL UNIQUE,
- email varchar(255) NOT NULL UNIQUE,
+ username VARCHAR(255) NOT NULL,
+ email varchar(255) NOT NULL,
  hashed_password varchar(255) NOT NULL
 );
 
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS user_statuses(
     val VARCHAR(255) NOT NULL UNIQUE
 );
 INSERT INTO user_statuses(val) VALUES ('UNCONFIRMED'), ('CONFIRMED');
+
 CREATE TABLE IF NOT EXISTS users_statuses(
     user_id INTEGER REFERENCES users(id),
 
@@ -25,6 +26,6 @@ CREATE TABLE IF NOT EXISTS users_statuses(
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS users_statuses;
-DROP TABLE IF EXISTS statuses;
+DROP TABLE IF EXISTS user_statuses;
 DROP TABLE IF EXISTS users;
 -- +goose StatementEnd
