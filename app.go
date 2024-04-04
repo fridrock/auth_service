@@ -7,6 +7,7 @@ import (
 
 	"github.com/fridrock/auth_service/db/core"
 	"github.com/fridrock/auth_service/db/stores"
+	"github.com/fridrock/auth_service/handlers"
 	"github.com/fridrock/auth_service/handlers/users"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
@@ -49,8 +50,8 @@ func (a App) getRouter() http.Handler {
 
 func (a App) getUsersRouter(r *mux.Router) *mux.Router {
 	usersRouter := r.PathPrefix("/users").Subrouter()
-	usersRouter.HandleFunc("/signup", a.userService.CreateUserHandler).Methods("POST")
-	usersRouter.HandleFunc("/signin", a.userService.AuthUserHandler).Methods("POST")
-	usersRouter.HandleFunc("/logout", a.userService.LogoutUserHandler).Methods("POST")
+	usersRouter.Handle("/signup", handlers.HandleErrorMiddleware(a.userService.CreateUserHandler)).Methods("POST")
+	usersRouter.Handle("/signin", handlers.HandleErrorMiddleware(a.userService.AuthUserHandler)).Methods("POST")
+	usersRouter.Handle("/logout", handlers.HandleErrorMiddleware(a.userService.LogoutUserHandler)).Methods("POST")
 	return usersRouter
 }

@@ -11,9 +11,9 @@ import (
 )
 
 type UserService interface {
-	CreateUserHandler(w http.ResponseWriter, r *http.Request)
-	LogoutUserHandler(w http.ResponseWriter, r *http.Request)
-	AuthUserHandler(w http.ResponseWriter, r *http.Request)
+	CreateUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error)
+	LogoutUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error)
+	AuthUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error)
 }
 
 type UserServiceImpl struct {
@@ -25,39 +25,34 @@ func CreateUserService(store stores.UserStore) *UserServiceImpl {
 		store: store,
 	}
 }
-func (us *UserServiceImpl) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := parseUser(r)
+func (us *UserServiceImpl) CreateUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	user, err := parseUser(w, r)
 	if err != nil {
-		writeError(w, err)
-		return
+		return http.StatusBadRequest, err
 	}
 	id, err := us.store.CreateUser(user)
 	if err != nil {
-		writeError(w, err)
-		return
+		return http.StatusBadRequest, err
 	}
 	slog.Info(fmt.Sprintf("Created user with id: %v", id))
 	w.Write([]byte(fmt.Sprintf("id is : %v", id)))
+	return http.StatusOK, nil
 }
-func parseUser(r *http.Request) (entities.User, error) {
+func parseUser(w http.ResponseWriter, r *http.Request) (entities.User, error) {
 	var usr entities.User
 	err := json.NewDecoder(r.Body).Decode(&usr)
 	if err != nil {
 		return usr, err
 	}
-	return usr, err
+	return usr, nil
 }
-func writeError(w http.ResponseWriter, err error) {
-	slog.Error(fmt.Sprintf("CreateUserHandler.handleHttp(): %v", err))
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(fmt.Sprint(err)))
-}
-func (us *UserServiceImpl) AuthUserHandler(w http.ResponseWriter, r *http.Request) {
 
+func (us *UserServiceImpl) AuthUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	return 200, nil
 }
-func (us *UserServiceImpl) CheckChatHandler(w http.ResponseWriter, r *http.Request) {
-
+func (us *UserServiceImpl) CheckChatHandler(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	return 200, nil
 }
-func (us *UserServiceImpl) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
-
+func (us *UserServiceImpl) LogoutUserHandler(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	return 200, nil
 }
