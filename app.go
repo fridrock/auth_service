@@ -12,14 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//Service funcionality:
-// create account
-// auth account => get special unique code => save in database unique_code -> username
-// send link to bot with this special code: start=unique_code
-// find user by unique_code, save message.chat.id->username
-// on next query compare message.chat.id ->TODO add this to cache
-
-// Main facade
 type App struct {
 	server      *http.Server
 	db          *sqlx.DB
@@ -37,6 +29,9 @@ func (a App) setup() {
 	defer a.db.Close()
 	a.userStore = *stores.CreateUserStore(a.db)
 	a.userService = users.CreateUserService(a.userStore)
+	a.setupServer()
+}
+func (a App) setupServer() {
 	a.server = &http.Server{
 		Addr:         ":9000",
 		ReadTimeout:  time.Second * 30,
@@ -46,7 +41,6 @@ func (a App) setup() {
 	slog.Info("Starting server on port 9000")
 	a.server.ListenAndServe()
 }
-
 func (a App) getRouter() http.Handler {
 	mainRouter := mux.NewRouter()
 	mainRouter.Handle("/users/", a.getUsersRouter(mainRouter))
