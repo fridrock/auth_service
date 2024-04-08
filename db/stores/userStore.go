@@ -98,6 +98,18 @@ func (us UserStore) deleteUserById(id int64) error {
 	}
 	return nil
 }
+
+func (us UserStore) GetUserEmailById(id int64) (string, error) {
+	var userEmail string
+	q := `SELECT (email) FROM users WHERE id=$1`
+	row := us.db.QueryRow(q, id)
+	err := row.Scan(&userEmail)
+	if err != nil {
+		return "", fmt.Errorf("no such user with id: %v", id)
+	}
+	return userEmail, nil
+}
+
 func (us UserStore) GetUsers() ([]entities.User, error) {
 	var users []entities.User
 	err := us.db.Select(&users, "SELECT * FROM users")

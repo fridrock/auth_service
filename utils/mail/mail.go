@@ -9,10 +9,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func Send(body string) {
-	from := "shiningsuffer@gmail.com"
+func Send(confirmationCode, to string) {
 	if err := godotenv.Load(); err != nil {
 		slog.Error("error reading environment variables")
+	}
+	from, exists := os.LookupEnv("EMAIL")
+	if !exists {
+		slog.Error("Can't read EMAIL")
+		return
 	}
 	pass, exists := os.LookupEnv("EMAIL_PASSWORD")
 	fmt.Println(pass)
@@ -20,13 +24,7 @@ func Send(body string) {
 		slog.Error("Can't read EMAIL_PASSWORD")
 		return
 	}
-	to := "anldeboshir@gmail.com"
-
-	msg := "From: " + from + "\n" +
-		"To: " + to + "\n" +
-		"Subject: Hello there\n\n" +
-		body
-
+	msg := generateMessage(confirmationCode, to, from)
 	err := smtp.SendMail("smtp.gmail.com:587",
 		smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
 		from, []string{to}, []byte(msg))
@@ -36,4 +34,11 @@ func Send(body string) {
 		return
 	}
 	slog.Info("Successfully sended to " + to)
+}
+func generateMessage(confirmationCode, to, from string) string {
+	msg := "From: " + from + "\n" +
+		"To: " + to + "\n" +
+		"Subject: Sport bot email confirmation" + "\n\n" +
+		fmt.Sprintf("click on link: http://127.0.0.1/users/confirm/%v to confirm your email", confirmationCode)
+	return msg
 }
