@@ -11,12 +11,14 @@ import (
 	"github.com/fridrock/auth_service/db/stores"
 	mailService "github.com/fridrock/auth_service/utils/mail"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type UserService interface {
 	CreateUser(w http.ResponseWriter, r *http.Request) (status int, err error)
 	LogoutUser(w http.ResponseWriter, r *http.Request) (status int, err error)
 	SendConfirmation(w http.ResponseWriter, r *http.Request) (status int, err error)
+	ConfirmEmail(w http.ResponseWriter, r *http.Request) (status int, err error)
 	AuthUser(w http.ResponseWriter, r *http.Request) (status int, err error)
 }
 
@@ -77,6 +79,19 @@ func (us *UserServiceImpl) SendConfirmation(w http.ResponseWriter, r *http.Reque
 		return http.StatusInternalServerError, err
 	}
 	mailService.Send(confirmationCode.String(), userEmail)
+	return http.StatusOK, nil
+}
+func (us *UserServiceImpl) ConfirmEmail(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	code := mux.Vars(r)["code"]
+	userId, err := us.cacheStore.GetUserId(code)
+	if err != nil {
+		return http.StatusGone, fmt.Errorf("no such confirmation code")
+	}
+	err = us.store.UpdateUserStatus(userId, "CONFIRMED")
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	w.Write([]byte("User's email confirmed"))
 	return http.StatusOK, nil
 }
 func (us *UserServiceImpl) AuthUser(w http.ResponseWriter, r *http.Request) (status int, err error) {

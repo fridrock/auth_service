@@ -67,6 +67,19 @@ func (us UserStore) setStatusToUser(userId int64, statusName string) error {
 	}
 	return nil
 }
+func (us UserStore) UpdateUserStatus(userId int64, statusName string) error {
+	statusId, err := us.getStatusByName(statusName)
+	if err != nil {
+		return err
+	}
+	var resultId int64
+	q := `UPDATE users_statuses SET status_id = $2 WHERE user_id=$1;`
+	err = us.db.QueryRow(q, userId, statusId).Scan(&resultId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (us UserStore) getStatusByName(name string) (int64, error) {
 	var id int64
 	q := `SELECT (id) FROM user_statuses WHERE val=$1`

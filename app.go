@@ -61,5 +61,6 @@ func (a App) getUsersRouter(r *mux.Router) *mux.Router {
 	usersRouter.Handle("/send-confirmation", handlers.HandleErrorMiddleware(a.userService.SendConfirmation)).Methods("POST")
 	usersRouter.Handle("/signin", handlers.HandleErrorMiddleware(a.userService.AuthUser)).Methods("POST")
 	usersRouter.Handle("/logout", handlers.HandleErrorMiddleware(a.userService.LogoutUser)).Methods("POST")
+	usersRouter.Handle("/confirm-email/{code}", handlers.HandleErrorMiddleware((a.userService.ConfirmEmail))).Methods("GET")
 	return usersRouter
 }

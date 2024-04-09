@@ -19,7 +19,6 @@ func Send(confirmationCode, to string) {
 		return
 	}
 	pass, exists := os.LookupEnv("EMAIL_PASSWORD")
-	fmt.Println(pass)
 	if !exists {
 		slog.Error("Can't read EMAIL_PASSWORD")
 		return
@@ -39,6 +38,6 @@ func generateMessage(confirmationCode, to, from string) string {
 	msg := "From: " + from + "\n" +
 		"To: " + to + "\n" +
 		"Subject: Sport bot email confirmation" + "\n\n" +
-		fmt.Sprintf("click on link: http://127.0.0.1/users/confirm/%v to confirm your email", confirmationCode)
+		fmt.Sprintf("click on link: http://127.0.0.1:9000/users/confirm-email/%v to confirm your email", confirmationCode)
 	return msg
 }
