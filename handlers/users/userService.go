@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -9,9 +10,15 @@ import (
 
 	"github.com/fridrock/auth_service/db/entities"
 	"github.com/fridrock/auth_service/db/stores"
+	"github.com/fridrock/auth_service/utils/hashing"
 	mailService "github.com/fridrock/auth_service/utils/mail"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+)
+
+const (
+	EMAIL_CONFIRMATION = "email_confirmation"
+	START_CODE         = "start_code"
 )
 
 type UserService interface {
@@ -20,6 +27,7 @@ type UserService interface {
 	SendConfirmation(w http.ResponseWriter, r *http.Request) (status int, err error)
 	ConfirmEmail(w http.ResponseWriter, r *http.Request) (status int, err error)
 	AuthUser(w http.ResponseWriter, r *http.Request) (status int, err error)
+	GetUser(w http.ResponseWriter, r *http.Request) (status int, err error)
 }
 
 type UserServiceImpl struct {
@@ -75,16 +83,17 @@ func (us *UserServiceImpl) SendConfirmation(w http.ResponseWriter, r *http.Reque
 		return http.StatusNotFound, err
 	}
 	confirmationCode := uuid.New()
-	err = us.cacheStore.PutEmailConfirmation(confirmationCode.String(), emr.Id)
+	err = us.cacheStore.PutUserId(EMAIL_CONFIRMATION, confirmationCode.String(), emr.Id)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	mailService.Send(confirmationCode.String(), userEmail)
 	return http.StatusOK, nil
 }
+
 func (us *UserServiceImpl) ConfirmEmail(w http.ResponseWriter, r *http.Request) (status int, err error) {
 	code := mux.Vars(r)["code"]
-	userId, err := us.cacheStore.GetUserId(code)
+	userId, err := us.cacheStore.GetUserId(EMAIL_CONFIRMATION, code)
 	if err != nil {
 		return http.StatusGone, fmt.Errorf("no such confirmation code")
 	}
@@ -92,14 +101,60 @@ func (us *UserServiceImpl) ConfirmEmail(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	w.Write([]byte("User's email confirmed"))
+	startCode, err := us.setStartCode(userId)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	w.Write([]byte(startCode))
 	return http.StatusOK, nil
 }
+
 func (us *UserServiceImpl) AuthUser(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	return 200, nil
+	var usr entities.User
+	err = json.NewDecoder(r.Body).Decode(&usr)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	userFromDb, err := us.store.GetUserByUsernameOrEmail(usr)
+	if err != nil {
+		return http.StatusNotFound, errors.New("no such user")
+	}
+	if !hashing.CheckPassword(usr.Password, userFromDb.Password) {
+		return http.StatusForbidden, errors.New("wrong password")
+	}
+	if !us.store.CheckConfirmed(userFromDb.Id) {
+		return http.StatusForbidden, errors.New("unconfirmed email")
+	}
+	startCode, err := us.setStartCode(userFromDb.Id)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	w.Write([]byte(startCode))
+	return http.StatusOK, nil
 }
-func (us *UserServiceImpl) CheckChat(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	return 200, nil
+func (us *UserServiceImpl) setStartCode(userId int64) (string, error) {
+	startCode := uuid.New().String()
+	return startCode, us.cacheStore.PutUserId(START_CODE, startCode, userId)
+}
+
+type UserIdResponse struct {
+	UserId int64 `json:"user_id"`
+}
+
+func (us *UserServiceImpl) GetUser(w http.ResponseWriter, r *http.Request) (status int, err error) {
+	startCode := mux.Vars(r)["startCode"]
+	userId, err := us.cacheStore.GetUserId(START_CODE, startCode)
+	if err != nil {
+		return http.StatusGone, fmt.Errorf("no such start code")
+	}
+	response := UserIdResponse{
+		UserId: userId,
+	}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	return http.StatusOK, nil
 }
 func (us *UserServiceImpl) LogoutUser(w http.ResponseWriter, r *http.Request) (status int, err error) {
 	return 200, nil

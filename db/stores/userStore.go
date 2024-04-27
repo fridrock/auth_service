@@ -67,6 +67,18 @@ func (us UserStore) setStatusToUser(userId int64, statusName string) error {
 	}
 	return nil
 }
+func (us UserStore) CheckConfirmed(userId int64) bool {
+	var statusId int64
+	err := us.db.QueryRow(`SELECT status_id WHERE user_id=$1;`).Scan(&statusId)
+	if err != nil {
+		return false
+	}
+	confirmedId, err := us.getStatusByName("CONFIRMED")
+	if err != nil {
+		return false
+	}
+	return confirmedId == statusId
+}
 func (us UserStore) UpdateUserStatus(userId int64, statusName string) error {
 	statusId, err := us.getStatusByName(statusName)
 	if err != nil {
@@ -100,6 +112,14 @@ func (us UserStore) checkIfUserExist(u entities.User) bool {
 	row := us.db.QueryRowx(q, u.Username, u.Email)
 	err := row.StructScan(&user)
 	return err == nil && user.Username != ""
+}
+
+func (us UserStore) GetUserByUsernameOrEmail(u entities.User) (entities.User, error) {
+	var user entities.User
+	q := `SELECT * FROM users WHERE username=$1 OR email=$2`
+	row := us.db.QueryRowx(q, u.Username, u.Email)
+	err := row.StructScan(&user)
+	return user, err
 }
 func (us UserStore) deleteUserById(id int64) error {
 	var deletedId int64

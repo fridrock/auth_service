@@ -18,15 +18,16 @@ func CreateCacheStore(client *redis.Client) *CacheStore {
 		client: client,
 	}
 }
-func (cs CacheStore) PutEmailConfirmation(confirmationCode string, userId int64) error {
+
+func (cs CacheStore) PutUserId(to string, key string, userId int64) error {
 	ctx := context.Background()
-	status := cs.client.Set(ctx, fmt.Sprintf("email_confirmation:%v", confirmationCode), userId, time.Second*600)
+	status := cs.client.Set(ctx, fmt.Sprintf("%v:%v", to, key), userId, time.Second*600)
 	return status.Err()
 }
 
-func (cs CacheStore) GetUserId(confirmationCode string) (int64, error) {
+func (cs CacheStore) GetUserId(from, code string) (int64, error) {
 	ctx := context.Background()
-	status := cs.client.Get(ctx, fmt.Sprintf("email_confirmation:%v", confirmationCode))
+	status := cs.client.Get(ctx, fmt.Sprintf("%v:%v", from, code))
 	if status.Err() != nil {
 		return 0, status.Err()
 	}
