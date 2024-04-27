@@ -23,6 +23,7 @@ func (cs CacheStore) PutEmailConfirmation(confirmationCode string, userId int64)
 	status := cs.client.Set(ctx, fmt.Sprintf("email_confirmation:%v", confirmationCode), userId, time.Second*600)
 	return status.Err()
 }
+
 func (cs CacheStore) GetUserId(confirmationCode string) (int64, error) {
 	ctx := context.Background()
 	status := cs.client.Get(ctx, fmt.Sprintf("email_confirmation:%v", confirmationCode))

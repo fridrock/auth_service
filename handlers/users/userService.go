@@ -46,6 +46,7 @@ func (us *UserServiceImpl) CreateUser(w http.ResponseWriter, r *http.Request) (s
 	w.Write([]byte(fmt.Sprintf("id is : %v", id)))
 	return http.StatusOK, nil
 }
+
 func parseUser(r *http.Request) (entities.User, error) {
 	var usr entities.User
 	err := json.NewDecoder(r.Body).Decode(&usr)
