@@ -23,7 +23,6 @@ const (
 
 type UserService interface {
 	CreateUser(w http.ResponseWriter, r *http.Request) (status int, err error)
-	LogoutUser(w http.ResponseWriter, r *http.Request) (status int, err error)
 	SendConfirmation(w http.ResponseWriter, r *http.Request) (status int, err error)
 	ConfirmEmail(w http.ResponseWriter, r *http.Request) (status int, err error)
 	AuthUser(w http.ResponseWriter, r *http.Request) (status int, err error)
@@ -155,7 +154,4 @@ func (us *UserServiceImpl) GetUser(w http.ResponseWriter, r *http.Request) (stat
 		return http.StatusBadRequest, err
 	}
 	return http.StatusOK, nil
-}
-func (us *UserServiceImpl) LogoutUser(w http.ResponseWriter, r *http.Request) (status int, err error) {
-	return 200, nil
 }
